@@ -4,6 +4,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+void renderInputWindow(WINDOW *inputWindow, int inputWindowHeight){
+    werase(inputWindow);
+    box(inputWindow, 0, 0);
+    wmove(inputWindow, (int)(inputWindowHeight / 2), 1);
+    wprintw(inputWindow, ">> ");
+    wrefresh(inputWindow);
+}
+
+void send(WINDOW *messageWindow,char *name, char *message){
+    char newShit[500] = {0};
+    strcat(newShit, name);
+    strcat(newShit, " >> ");
+    strcat(newShit, message);
+
+    wprintw(messageWindow, "%s\n", newShit);
+    box(messageWindow, 0, 0);
+    wrefresh(messageWindow);
+
+}
+
 int main(){
 
     initscr();
@@ -36,28 +56,37 @@ int main(){
 
         // End of windows Initialization
 
+        char ip[255] = {0};
+        char name[255] = {0};
+
+        renderInputWindow(inputWindow, inputWindowHeight);
+        wprintw(inputWindow, "Enter name : ");
+        wgetstr(inputWindow, name);
+
         int y = 1;
         wmove(messagesWindow, y++, 1);
-        wmove(inputWindow, (int)(inputWindowHeight / 2), 1);
-        wprintw(inputWindow, ">> ");
+        wrefresh(messagesWindow);
 
         char buffer[255] = {0};
         while(1){
 
+            renderInputWindow(inputWindow, inputWindowHeight);
+            wgetstr(inputWindow, buffer);
+
             if(!strcmp(buffer, "exit")){
                 break;
             }
-            // else if(!strcmp(buffer, ""))
-            wgetstr(inputWindow, buffer);
-            wprintw(messagesWindow, "%s", buffer);
+            else if(!strcmp(buffer, "")){
+                wmove(inputWindow, (int)(inputWindowHeight / 2), 4);
+                continue;
+            }
+
+            renderInputWindow(inputWindow, inputWindowHeight);
+            send(messagesWindow, name, buffer);
+
             wmove(messagesWindow, y++, 1);
             wrefresh(messagesWindow);
-            
-            werase(inputWindow);
-            box(inputWindow, 0, 0);
-            wmove(inputWindow, (int)(inputWindowHeight / 2), 1);
-            wprintw(inputWindow, ">> ");
-            wrefresh(inputWindow);
+
         }
 
     endwin();
