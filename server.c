@@ -15,6 +15,34 @@ typedef struct AcceptClientsThreadArgs{
     int server_socker;
 }AcceptClientsThreadArgs;
 
+typedef struct BroadcastThreadArgs{
+    int broadcasterSocket;
+    int serverSocket;
+    int *clientSockets;
+    int clientSocketSize;
+}BroadcastThreadArgs;
+
+void *broadcast(void *threadArgs){
+
+    BroadcastThreadArgs *args = (BroadcastThreadArgs *)threadArgs;
+
+    char buffer[256];
+    while(1){
+        memset(buffer, 0, sizeof(buffer));
+        recv(args->broadcasterSocket, buffer, sizeof(buffer), 0);
+
+        for(int i = 0; i < args->clientSocketSize; i++){
+            if(args->clientSockets[i] != 0){
+                send(args->clientSockets[i], buffer, sizeof(buffer), 0);
+            }
+        }
+
+    }
+
+    pthread_exit(NULL);
+
+}
+
 void *acceptClients(void *threadArgs){
 
     AcceptClientsThreadArgs *args = (AcceptClientsThreadArgs*) threadArgs;
@@ -26,7 +54,14 @@ void *acceptClients(void *threadArgs){
         args->clientSockets[i] = client_socket;
         i++;
 
+        BroadcastThreadArgs broadcastThreadArgs;
+        broadcastThreadArgs.broadcasterSocket = client_socket;
+        broadcastThreadArgs.serverSocket = args->server_socker;
+        broadcastThreadArgs.clientSockets = args->clientSockets;
+        broadcastThreadArgs.clientSocketSize = args->clientSocketsSize;
 
+        pthread_t broadcastThread;
+        pthread_create(&broadcastThread, NULL,  broadcast, (void *)&broadcastThreadArgs);
 
     }
 
@@ -60,13 +95,6 @@ int main(){
         sleep(1);
     }
     printf("Someone is connected\n");   
-
-    char respond[256] = {0};
-    for(int i = 0; i < 5; i++){
-        memset(respond, 0, sizeof(respond));
-        recv(client_sockets[0], respond, sizeof(respond), 0);
-        printf("Client : %s\n", respond);
-    }
     
     pthread_join(acceptClientsThread, NULL);
     close(server_socket);
