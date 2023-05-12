@@ -4,6 +4,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+#include "client.c"
+
+#include <pthread.h>
+
+
+typedef struct ThreadArgs{
+    WINDOW *window;
+    char *message;
+    int socket;
+}ThreadArgs;
+
 void renderInputWindow(WINDOW *inputWindow, int inputWindowHeight){
     werase(inputWindow);
     box(inputWindow, 0, 0);
@@ -12,15 +27,26 @@ void renderInputWindow(WINDOW *inputWindow, int inputWindowHeight){
     wrefresh(inputWindow);
 }
 
-void send(WINDOW *messageWindow,char *name, char *message){
-    char newShit[500] = {0};
-    strcat(newShit, name);
-    strcat(newShit, " >> ");
-    strcat(newShit, message);
+// void send2(WINDOW *messageWindow,char *name, char *message){
+//     char newShit[500] = {0};
+//     strcat(newShit, name);
+//     strcat(newShit, " >> ");
+//     strcat(newShit, message);
 
-    wprintw(messageWindow, "%s\n", newShit);
-    box(messageWindow, 0, 0);
-    wrefresh(messageWindow);
+//     wprintw(messageWindow, "%s\n", newShit);
+//     box(messageWindow, 0, 0);
+//     wrefresh(messageWindow);
+
+// }
+
+void *receive_and_print(void *threadArgs){
+
+    ThreadArgs *args = (ThreadArgs *)threadArgs;
+    for(int i = 0; i < 5; i++){
+        wprintw(args->window, "%d --> %s\n", i, args->message);
+        wrefresh(args->window);
+        sleep(3);
+    }
 
 }
 
@@ -56,24 +82,37 @@ int main(){
 
         // End of windows Initialization
 
-        char ip[255] = {0};
-        char name[255] = {0};
+
+
+        char ip[256] = {0};
+        char name[256] = {0};
 
         renderInputWindow(inputWindow, inputWindowHeight);
         wprintw(inputWindow, "Enter name : ");
         wgetstr(inputWindow, name);
+        
+        ThreadArgs threadArgs;
+        threadArgs.window = messagesWindow;
+        threadArgs.message = "hello jeff";
+
+        // pthread_t printThread;
+        // pthread_create(&printThread, NULL, receive_and_print, (void *)&threadArgs);
 
         int y = 1;
         wmove(messagesWindow, y++, 1);
         wrefresh(messagesWindow);
 
-        char buffer[255] = {0};
+        char buffer[256] = {0};
+
+        int socket = configSocket();
+
         while(1){
 
             renderInputWindow(inputWindow, inputWindowHeight);
             wgetstr(inputWindow, buffer);
 
             if(!strcmp(buffer, "exit")){
+                // pthread_cancel(printThread);
                 break;
             }
             else if(!strcmp(buffer, "")){
@@ -82,7 +121,9 @@ int main(){
             }
 
             renderInputWindow(inputWindow, inputWindowHeight);
-            send(messagesWindow, name, buffer);
+            // send2(messagesWindow, name, buffer);
+
+            sendMessage(socket, buffer);
 
             wmove(messagesWindow, y++, 1);
             wrefresh(messagesWindow);
@@ -91,6 +132,7 @@ int main(){
 
     endwin();
 
+    // pthread_join(printThread, NULL);
     return 0;
 
 }
