@@ -20,12 +20,8 @@ int configSocket(){
     return sock1;
 }
 
-void sendMessage(int socket, char *message, char *name){
-        char newMessage[512] = {0};
-        strcat(newMessage, name);
-        strcat(newMessage, " >> ");
-        strcat(newMessage, message);
-        newMessage[strcspn(newMessage, "\n")] = '\0';
-        size_t message_size = strlen(newMessage);
-        send(socket, newMessage, message_size, 0);
+void sendMessage(int socket, char *message){
+        message[strcspn(message, "\n")] = '\0';
+        size_t message_size = strlen(message);
+        send(socket, message, message_size, 0);
 }

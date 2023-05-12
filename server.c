@@ -12,14 +12,14 @@
 typedef struct AcceptClientsThreadArgs{
     int *clientSockets;
     int clientSocketsSize;
-    int server_socker;
+    int serverSocket;
 }AcceptClientsThreadArgs;
 
 typedef struct BroadcastThreadArgs{
-    int broadcasterSocket;
-    int serverSocket;
     int *clientSockets;
     int clientSocketSize;
+    int broadcasterSocket;
+    int serverSocket;
 }BroadcastThreadArgs;
 
 void *broadcast(void *threadArgs){
@@ -28,7 +28,6 @@ void *broadcast(void *threadArgs){
 
     char buffer[256];
     while(1){
-        memset(buffer, 0, sizeof(buffer));
         recv(args->broadcasterSocket, buffer, sizeof(buffer), 0);
 
         for(int i = 0; i < args->clientSocketSize; i++){
@@ -50,13 +49,13 @@ void *acceptClients(void *threadArgs){
     int i = 0;
 
     while(1){
-        int client_socket = accept(args->server_socker, NULL, NULL);
+        int client_socket = accept(args->serverSocket, NULL, NULL);
         args->clientSockets[i] = client_socket;
         i++;
 
         BroadcastThreadArgs broadcastThreadArgs;
         broadcastThreadArgs.broadcasterSocket = client_socket;
-        broadcastThreadArgs.serverSocket = args->server_socker;
+        broadcastThreadArgs.serverSocket = args->serverSocket;
         broadcastThreadArgs.clientSockets = args->clientSockets;
         broadcastThreadArgs.clientSocketSize = args->clientSocketsSize;
 
@@ -81,21 +80,16 @@ int main(){
     bind(server_socket,(struct sockaddr *) &server_address, sizeof(server_address));
     listen(server_socket, 10);
 
-    int client_sockets[10] = {0};
+    int clientSockets[10] = {0};
 
     AcceptClientsThreadArgs acceptClientsThreadArgs;
-    acceptClientsThreadArgs.clientSockets = client_sockets;
+    acceptClientsThreadArgs.clientSockets = clientSockets;
     acceptClientsThreadArgs.clientSocketsSize = 10;
-    acceptClientsThreadArgs.server_socker = server_socket;
+    acceptClientsThreadArgs.serverSocket = server_socket;
 
     pthread_t acceptClientsThread;
     pthread_create(&acceptClientsThread, NULL, acceptClients, (void *)&acceptClientsThreadArgs);
 
-    while(client_sockets[0] == 0){
-        sleep(1);
-    }
-    printf("Someone is connected\n");   
-    
     pthread_join(acceptClientsThread, NULL);
     close(server_socket);
 

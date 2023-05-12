@@ -74,14 +74,7 @@ int main(){
 
         // End of windows Initialization
 
-
-
-        char ip[256] = {0};
-        char name[256] = {0};
-
         renderInputWindow(inputWindow, inputWindowHeight);
-        wprintw(inputWindow, "Enter name : ");
-        wgetstr(inputWindow, name);
 
         char buffer[256] = {0};
         char message[256] = {0};
@@ -111,7 +104,7 @@ int main(){
 
             renderInputWindow(inputWindow, inputWindowHeight);
 
-            sendMessage(socket, buffer, name);
+            sendMessage(socket, buffer);
 
         }
 
