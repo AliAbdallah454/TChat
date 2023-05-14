@@ -3,6 +3,10 @@
         "socket.h": "c",
         "types.h": "c",
         "in.h": "c",
-        "cstring": "cpp"
+        "cstring": "cpp",
+        "ostream": "cpp",
+        "chrono": "cpp",
+        "cstdlib": "cpp",
+        "iostream": "cpp"
     }
 }

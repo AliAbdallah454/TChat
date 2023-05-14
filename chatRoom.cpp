@@ -1,4 +1,3 @@
-// #include <ncurses.h>
 #include <boost/asio.hpp>
 #include <string>
 #include <cstring>
@@ -11,23 +10,41 @@
 using boost::asio::ip::tcp;
 using namespace std;
 
+void receiveAndPrint(tcp::socket &socket){
+
+    char buffer[256] = {0};
+    while(true){
+        size_t length = socket.read_some(boost::asio::buffer(buffer));
+        cout << "MESSAGE : " << string(buffer, length) << endl;
+    }
+
+}
+
 int main(){
 
-    char name[256] = "Ali";
+    tcp::socket socket = configSocket();
+
+    thread receiveAndPrintThread(receiveAndPrint, ref(socket));
+
+    char name[256] = {};
     char message[256] = {0};
 
-    tcp::socket socket = configSocket();
+    cout << "Enter name : ";
+    fgets(name, sizeof(name), stdin);
+    name[strcspn(name, "\n")] = '\0';
 
     while(true){
 
         cout << " >> ";
         fgets(message, sizeof(message), stdin);
-
+        
+        if(message[0] == '\n') continue;
         sendMessage(socket, name, message);
-
         memset(message, 0, sizeof(message));
 
     }    
+
+    receiveAndPrintThread.join();
 
     return 0;
 

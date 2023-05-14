@@ -4,9 +4,11 @@
 #include <iostream>
 #include <cstdlib>
 
-#define BUFFER_SIZE 256
+// using namespace std;
 
-using namespace std;
+using std::strcat;
+using std::strcspn;
+
 
 using boost::asio::ip::tcp;
 
@@ -27,7 +29,7 @@ void sendMessage(tcp::socket &socket, char *name, char *message){
 
     message[strcspn(message, "\n")] = '\0';
 
-    char messagePlusName[512] = {0};
+    char messagePlusName[256] = {0};
 
     strcat(messagePlusName, name);
     strcat(messagePlusName, " >> ");
